@@ -1,8 +1,14 @@
 name: Virtual IoT Device Simulator
-version: "0.1.0"
-slug: IoT_Device_Spoofer
+version: '0.1.0'
+slug: iot_device_spoofer
 description: Simulates IoT devices via MQTT for Home Assistant
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
 startup: services
 boot: auto
 ingress: true
-icon: icon.png
+url: https://github.com/MagnusHLund/IoT_Device_spoofer_for_HA
