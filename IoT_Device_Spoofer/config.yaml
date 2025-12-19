@@ -12,3 +12,4 @@ startup: services
 boot: auto
 ingress: true
 url: https://github.com/MagnusHLund/IoT_Device_spoofer_for_HA
+init: false
