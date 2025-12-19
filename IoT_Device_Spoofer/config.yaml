@@ -1,4 +1,4 @@
-name: Virtual IoT Device Simulator
+name: Device Spoofer
 version: '0.1.0'
 slug: iot_device_spoofer
 description: Simulates IoT devices via MQTT for Home Assistant
