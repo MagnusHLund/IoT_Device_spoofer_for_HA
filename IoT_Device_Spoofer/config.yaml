@@ -1,5 +1,5 @@
 name: Device Spoofer
-version: '0.1.3'
+version: '0.1.4'
 slug: iot_device_spoofer
 description: Simulates IoT devices via MQTT for Home Assistant
 
@@ -18,10 +18,7 @@ ingress_port: 8080
 
 url: https://github.com/MagnusHLund/IoT_Device_spoofer_for_HA
 
-init: false
-
-ports:
-  8080/tcp: 8080
+init: true
 
 panel_icon: mdi:chip
 panel_title: IoT Device Spoofer

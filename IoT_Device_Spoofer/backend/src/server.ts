@@ -29,7 +29,7 @@ app.post('/generate', (req, res) => {
 
 // Ingress fallback
 app.get('*', (_, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'))
+  res.sendFile(path.join(__dirname, '../frontend', 'index.html'))
 })
 
 app.listen(8080, () => console.log('Backend running on port 8080'))
