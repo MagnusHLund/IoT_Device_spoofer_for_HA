@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Button from '../Components/button';
 import Base from './Base';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import './Head.scss';
 
 const Head: React.FC = () => {
     const [devices, setDevices] = useState<any[]>([]);

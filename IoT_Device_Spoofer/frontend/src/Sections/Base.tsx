@@ -1,5 +1,6 @@
 import React from 'react';
 import Device from '../Components/device';
+import './Base.scss';
 
 interface BaseProps {
     devices: any[];
