@@ -1,12 +1,16 @@
 import express from 'express'
 import path from 'path'
 import yaml from 'js-yaml'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
 app.use(express.json())
 
 // Serve React build
-app.use(express.static('/app/frontend'))
+app.use(express.static(path.join(__dirname, '../frontend')))
 
 // YAML generation endpoint
 app.post('/generate', (req, res) => {
@@ -25,7 +29,7 @@ app.post('/generate', (req, res) => {
 
 // Ingress fallback
 app.get('*', (_, res) => {
-  res.sendFile('/app/frontend/index.html')
+  res.sendFile(path.join(__dirname, '../frontend/index.html'))
 })
 
 app.listen(8080, () => console.log('Backend running on port 8080'))

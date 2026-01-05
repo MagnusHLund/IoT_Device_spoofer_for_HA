@@ -1,5 +1,5 @@
 name: Device Spoofer
-version: '0.1.2'
+version: '0.1.3'
 slug: iot_device_spoofer
 description: Simulates IoT devices via MQTT for Home Assistant
 

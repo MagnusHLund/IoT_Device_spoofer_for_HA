@@ -5,7 +5,7 @@ COPY frontend/ .
 RUN npm install && npm run build
 
 # Build backend
-FROM node:18 AS backend
+FROM node:20-alpine AS backend
 WORKDIR /src
 COPY backend/ .
 RUN npm install && npm run build
