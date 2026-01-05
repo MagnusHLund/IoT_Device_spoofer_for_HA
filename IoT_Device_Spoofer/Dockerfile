@@ -1,5 +1,5 @@
 # Build React frontend
-FROM node:18 AS frontend
+FROM node:20-alpine AS frontend
 WORKDIR /src
 COPY frontend/ .
 RUN npm install && npm run build
@@ -11,7 +11,7 @@ COPY backend/ .
 RUN npm install && npm run build
 
 # Final runtime image
-FROM node:18
+FROM node:20-alpine
 WORKDIR /app
 
 # Copy backend dist
