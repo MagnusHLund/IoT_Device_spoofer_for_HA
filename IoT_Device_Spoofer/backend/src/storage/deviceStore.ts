@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import BaseEntity, { EntityDefinition } from '../entities/baseEntity'
+import { EntityDefinition } from '../entities/baseEntity'
 
 const DATA_DIR = '/data'
 const FILE_PATH = path.join(DATA_DIR, 'devices.json')
