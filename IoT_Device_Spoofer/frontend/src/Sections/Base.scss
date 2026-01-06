@@ -1,7 +1,7 @@
 .device-list {
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 250px);
+  padding-right: 5px;
   overflow-y: auto; 
 
   &::-webkit-scrollbar {
