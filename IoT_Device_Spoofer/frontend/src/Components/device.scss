@@ -235,6 +235,10 @@
   .entity-form-buttons {
     display: flex;
     gap: 8px;
+
+    button {
+      flex: 1;
+    }
   }
 
   .form-btn {
