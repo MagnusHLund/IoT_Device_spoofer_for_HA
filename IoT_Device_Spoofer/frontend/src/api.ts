@@ -1,4 +1,12 @@
-const API_BASE = '/api';
+// Support Home Assistant ingress by prefixing with the ingress path when present.
+// HA ingress pages render under /api/hassio_ingress/<token>/..., so we detect that prefix.
+const ingressPrefix = (() => {
+  if (typeof window === 'undefined') return ''
+  const match = window.location.pathname.match(/^\/api\/hassio_ingress\/[^/]+/)
+  return match ? match[0] : ''
+})()
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? `${ingressPrefix}/api`
 
 export interface Entity {
   id: string;
