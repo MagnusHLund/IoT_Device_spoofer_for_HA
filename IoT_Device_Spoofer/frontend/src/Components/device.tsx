@@ -166,12 +166,16 @@ const Device: React.FC<DeviceProps> = ({
                 value={newEntityType}
                 onChange={(e) => setNewEntityType(e.target.value)}
               >
-                <option value="sensor">Sensor</option>
-                <option value="lamp">Lamp</option>
-                <option value="switch">Switch</option>
-                <option value="thermostat">Thermostat</option>
-                <option value="camera">Camera</option>
-                <option value="lock">Lock</option>
+                {entityTypes.map((type) => {
+                  const label = type
+                    .replace(/_/g, ' ')
+                    .replace(/^([a-z])/, (m) => m.toUpperCase())
+                  return (
+                    <option key={type} value={type}>
+                      {label}
+                    </option>
+                  )
+                })}
               </select>
               <input
                 type="text"
