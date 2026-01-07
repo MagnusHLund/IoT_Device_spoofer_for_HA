@@ -30,7 +30,9 @@ export async function getDevices(): Promise<Device[]> {
 }
 
 // Add a new device
-export async function addDevice(device: Omit<Device, 'id'>): Promise<Device> {
+type AddDeviceInput = { name: string; entities?: Entity[] };
+
+export async function addDevice(device: AddDeviceInput): Promise<Device> {
   const response = await fetch(`${API_BASE}/devices`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -44,13 +46,29 @@ export async function addDevice(device: Omit<Device, 'id'>): Promise<Device> {
 export async function updateDevice(
   id: string,
   device: Partial<Device>
-): Promise<void> {
+): Promise<Device> {
   const response = await fetch(`${API_BASE}/devices/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(device),
   });
-  if (!response.ok) throw new Error('Failed to update device');
+
+  if (!response.ok) {
+    const detail = await safeErrorMessage(response);
+    throw new Error(detail ?? 'Failed to update device');
+  }
+
+  return response.json();
+}
+
+async function safeErrorMessage(response: Response): Promise<string | null> {
+  try {
+    const body = await response.json();
+    if (typeof body?.message === 'string') return body.message;
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 // Delete a device
