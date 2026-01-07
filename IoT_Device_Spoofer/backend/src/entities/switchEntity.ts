@@ -1,4 +1,4 @@
-import BaseEntity, { EntityDefinition } from './baseEntity'
+import BaseEntity, { EntityDefinition } from './baseEntity.js'
 
 export class SwitchEntity extends BaseEntity {
   constructor(def: EntityDefinition) {

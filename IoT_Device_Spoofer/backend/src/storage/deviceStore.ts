@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { randomUUID } from 'crypto'
-import { EntityDefinition } from '../entities/baseEntity'
+import { EntityDefinition } from '../entities/baseEntity.js'
 
 const DATA_DIR = '/data'
 const FILE_PATH = path.join(DATA_DIR, 'devices.json')

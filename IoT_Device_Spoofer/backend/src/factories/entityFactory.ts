@@ -1,9 +1,9 @@
-import { BinarySensorEntity } from '../entities/binarySensorEntity'
-import { LockEntity } from '../entities/lockEntity'
-import { LightEntity } from '../entities/lightEntity'
-import { NumberEntity } from '../entities/numberEntity'
-import { SwitchEntity } from '../entities/switchEntity'
-import { EntityDefinition } from '../entities/baseEntity'
+import { BinarySensorEntity } from '../entities/binarySensorEntity.js'
+import { LockEntity } from '../entities/lockEntity.js'
+import { LightEntity } from '../entities/lightEntity.js'
+import { NumberEntity } from '../entities/numberEntity.js'
+import { SwitchEntity } from '../entities/switchEntity.js'
+import { EntityDefinition } from '../entities/baseEntity.js'
 
 const ENTITY_REGISTRY = {
   binary_sensor: BinarySensorEntity,

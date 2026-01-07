@@ -1,4 +1,4 @@
-import BaseEntity, { EntityDefinition } from './baseEntity'
+import BaseEntity, { EntityDefinition } from './baseEntity.js'
 
 export class BinarySensorEntity extends BaseEntity {
   unit?: string
