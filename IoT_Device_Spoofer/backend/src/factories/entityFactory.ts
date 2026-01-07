@@ -5,21 +5,24 @@ import { NumberEntity } from '../entities/numberEntity'
 import { SwitchEntity } from '../entities/switchEntity'
 import { EntityDefinition } from '../entities/baseEntity'
 
+const ENTITY_REGISTRY = {
+  binary_sensor: BinarySensorEntity,
+  sensor: LightEntity,
+  lock: LockEntity,
+  light: LightEntity,
+  number: NumberEntity,
+  switch: SwitchEntity,
+}
+
 export function createEntity(entityDefinition: EntityDefinition) {
-  switch (entityDefinition.type) {
-    case 'binary_sensor':
-      return BinarySensorEntity.fromJSON(entityDefinition)
-    case 'sensor':
-      return LightEntity.fromJSON(entityDefinition)
-    case 'lock':
-      return LockEntity.fromJSON(entityDefinition)
-    case 'light':
-      return LightEntity.fromJSON(entityDefinition)
-    case 'number':
-      return NumberEntity.fromJSON(entityDefinition)
-    case 'switch':
-      return SwitchEntity.fromJSON(entityDefinition)
-    default:
-      throw new Error(`Unknown entity type: ${entityDefinition.type}`)
+  const EntityClass =
+    ENTITY_REGISTRY[entityDefinition.type as keyof typeof ENTITY_REGISTRY]
+  if (!EntityClass) {
+    throw new Error(`Unknown entity type: ${entityDefinition.type}`)
   }
+  return EntityClass.fromJSON(entityDefinition)
+}
+
+export function getAvailableEntityTypes(): string[] {
+  return Object.keys(ENTITY_REGISTRY)
 }

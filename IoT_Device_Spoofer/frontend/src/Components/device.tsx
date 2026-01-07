@@ -1,25 +1,26 @@
-import React, { useState, useEffect } from "react";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import DeleteIcon from "@mui/icons-material/Delete";
-import Button from "./button";
-import "./device.scss";
+import React, { useState, useEffect } from 'react'
+import AddCircleIcon from '@mui/icons-material/AddCircle'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import DeleteIcon from '@mui/icons-material/Delete'
+import Button from './button'
+import './device.scss'
+import { getEntityTypes } from '../api'
 
 interface Entity {
-  id: string;
-  name: string;
-  value: string;
-  type: string;
+  id: string
+  name: string
+  value: string
+  type: string
 }
 
 interface DeviceProps {
-  id: string;
-  name: string;
-  description: string;
-  entities: Entity[];
-  onUpdateEntities: (entities: Entity[]) => Promise<void> | void;
-  onDelete?: () => void;
+  id: string
+  name: string
+  description: string
+  entities: Entity[]
+  onUpdateEntities: (entities: Entity[]) => Promise<void> | void
+  onDelete?: () => void
 }
 
 const Device: React.FC<DeviceProps> = ({
@@ -30,37 +31,46 @@ const Device: React.FC<DeviceProps> = ({
   onUpdateEntities,
   onDelete,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [entities, setEntities] = useState<Entity[]>(initialEntities);
-  const [newEntityName, setNewEntityName] = useState("");
-  const [newEntityType, setNewEntityType] = useState("sensor");
-  const [newEntityValue, setNewEntityValue] = useState("");
-  const [showEntityForm, setShowEntityForm] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [entities, setEntities] = useState<Entity[]>(initialEntities)
+  const [newEntityName, setNewEntityName] = useState('')
+  const [newEntityType, setNewEntityType] = useState('sensor')
+  const [newEntityValue, setNewEntityValue] = useState('')
+  const [showEntityForm, setShowEntityForm] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [entityTypes, setEntityTypes] = useState<string[]>([])
 
   // Keep local entities in sync if parent updates them
   useEffect(() => {
-    setEntities(initialEntities);
-  }, [initialEntities]);
+    setEntities(initialEntities)
+  }, [initialEntities])
+
+  useEffect(() => {
+    const fetchEntityTypes = async () => {
+      const types = await getEntityTypes()
+      setEntityTypes(types)
+    }
+    fetchEntityTypes()
+  }, [])
 
   const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
+    setIsExpanded(!isExpanded)
+  }
 
   const persistEntities = async (next: Entity[]) => {
-    setSaving(true);
-    setError(null);
+    setSaving(true)
+    setError(null)
     try {
-      await onUpdateEntities(next);
-      setEntities(next);
+      await onUpdateEntities(next)
+      setEntities(next)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save entities");
-      console.error("Error saving entities", err);
+      setError(err instanceof Error ? err.message : 'Failed to save entities')
+      console.error('Error saving entities', err)
     } finally {
-      setSaving(false);
+      setSaving(false)
     }
-  };
+  }
 
   const handleAddEntity = () => {
     if (newEntityName.trim() && newEntityType.trim()) {
@@ -68,21 +78,21 @@ const Device: React.FC<DeviceProps> = ({
         id: Date.now().toString(),
         name: newEntityName,
         type: newEntityType,
-        value: newEntityValue || "0",
-      };
-      const next = [...entities, entity];
-      persistEntities(next);
-      setNewEntityName("");
-      setNewEntityType("sensor");
-      setNewEntityValue("");
-      setShowEntityForm(false);
+        value: newEntityValue || '0',
+      }
+      const next = [...entities, entity]
+      persistEntities(next)
+      setNewEntityName('')
+      setNewEntityType('sensor')
+      setNewEntityValue('')
+      setShowEntityForm(false)
     }
-  };
+  }
 
   const handleRemoveEntity = (entityId: string) => {
-    const next = entities.filter((entity) => entity.id !== entityId);
-    persistEntities(next);
-  };
+    const next = entities.filter((entity) => entity.id !== entityId)
+    persistEntities(next)
+  }
 
   return (
     <div className="device-card">
@@ -100,8 +110,8 @@ const Device: React.FC<DeviceProps> = ({
           <button
             className="device-delete-btn"
             onClick={(e) => {
-              e.stopPropagation();
-              onDelete();
+              e.stopPropagation()
+              onDelete()
             }}
             title="Delete device"
           >
@@ -171,16 +181,16 @@ const Device: React.FC<DeviceProps> = ({
               />
               <div className="entity-form-buttons">
                 <Button
-                  name={saving ? "Saving..." : "Create"}
+                  name={saving ? 'Saving...' : 'Create'}
                   onClick={handleAddEntity}
                 />
                 <button
                   className="form-btn cancel"
                   onClick={() => {
-                    setShowEntityForm(false);
-                    setNewEntityName("");
-                    setNewEntityType("sensor");
-                    setNewEntityValue("");
+                    setShowEntityForm(false)
+                    setNewEntityName('')
+                    setNewEntityType('sensor')
+                    setNewEntityValue('')
                   }}
                   disabled={saving}
                 >
@@ -192,7 +202,7 @@ const Device: React.FC<DeviceProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Device;
+export default Device
