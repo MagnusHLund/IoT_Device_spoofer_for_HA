@@ -7,6 +7,8 @@ import {
   updateDevice,
   deleteDevice,
   DeviceDefinition,
+  NewDeviceInput,
+  DeviceUpdateInput,
 } from './storage/deviceStore.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -23,18 +25,35 @@ app.get('/api/devices', (req, res) => {
 })
 
 app.post('/api/devices', (req, res) => {
-  const device = req.body as DeviceDefinition
-  addDevice(device)
-  res.json({ success: true })
+  const payload = req.body as Partial<NewDeviceInput>
+
+  if (!payload?.name) {
+    return res.status(400).json({ success: false, message: 'name is required' })
+  }
+
+  const created = addDevice({
+    name: payload.name,
+    manufacturer: payload.manufacturer, // optional; defaulted in store
+    entities: payload.entities ?? [],
+  })
+
+  res.status(201).json(created)
 })
 
 app.put('/api/devices/:id', (req, res) => {
-  const ok = updateDevice(req.params.id, req.body)
-  res.json({ success: ok })
+  const payload = req.body as DeviceUpdateInput
+  const updated = updateDevice(req.params.id, payload)
+  if (!updated) {
+    return res.status(404).json({ success: false, message: 'device not found' })
+  }
+  res.json(updated)
 })
 
 app.delete('/api/devices/:id', (req, res) => {
-  deleteDevice(req.params.id)
+  const deleted = deleteDevice(req.params.id)
+  if (!deleted) {
+    return res.status(404).json({ success: false, message: 'device not found' })
+  }
   res.json({ success: true })
 })
 

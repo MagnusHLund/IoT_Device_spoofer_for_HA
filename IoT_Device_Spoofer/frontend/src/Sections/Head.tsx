@@ -8,13 +8,22 @@ import "./Head.scss";
 interface HeadProps {
   devices: Device[];
   onDeleteDevice: (id: string) => void;
+  onUpdateEntities: (
+    id: string,
+    entities: Device["entities"]
+  ) => void | Promise<void>;
   onRefresh: () => void;
 }
 
-const Head: React.FC<HeadProps> = ({ devices, onDeleteDevice, onRefresh }) => {
+const Head: React.FC<HeadProps> = ({
+  devices,
+  onDeleteDevice,
+  onUpdateEntities,
+  onRefresh,
+}) => {
   const [showForm, setShowForm] = useState(false);
   const [deviceName, setDeviceName] = useState("");
-  const [deviceManufacturer, setDeviceManufacturer] = useState("");
+  // manufacturer is fixed on backend; no input needed
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,17 +32,12 @@ const Head: React.FC<HeadProps> = ({ devices, onDeleteDevice, onRefresh }) => {
   };
 
   const handleSubmitDevice = async () => {
-    if (deviceName.trim() && deviceManufacturer.trim()) {
+    if (deviceName.trim()) {
       try {
         setLoading(true);
         setError(null);
-        await addDevice({
-          name: deviceName,
-          manufacturer: deviceManufacturer,
-          entities: [],
-        });
+        await addDevice({ name: deviceName, entities: [] });
         setDeviceName("");
-        setDeviceManufacturer("");
         setShowForm(false);
         onRefresh();
       } catch (err) {
@@ -47,7 +51,6 @@ const Head: React.FC<HeadProps> = ({ devices, onDeleteDevice, onRefresh }) => {
 
   const handleCancel = () => {
     setDeviceName("");
-    setDeviceManufacturer("");
     setShowForm(false);
     setError(null);
   };
@@ -77,14 +80,7 @@ const Head: React.FC<HeadProps> = ({ devices, onDeleteDevice, onRefresh }) => {
               onKeyPress={(e) => e.key === "Enter" && handleSubmitDevice()}
               disabled={loading}
             />
-            <input
-              type="text"
-              placeholder="Manufacturer"
-              value={deviceManufacturer}
-              onChange={(e) => setDeviceManufacturer(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSubmitDevice()}
-              disabled={loading}
-            />
+            {/* manufacturer is always 'IoT Device Spoofer' */}
             <div className="modal-buttons">
               <Button
                 name={loading ? "Creating..." : "Create"}
@@ -96,7 +92,11 @@ const Head: React.FC<HeadProps> = ({ devices, onDeleteDevice, onRefresh }) => {
         </div>
       )}
 
-      <Base devices={devices} onDeleteDevice={onDeleteDevice} />
+      <Base
+        devices={devices}
+        onDeleteDevice={onDeleteDevice}
+        onUpdateEntities={onUpdateEntities}
+      />
     </div>
   );
 };

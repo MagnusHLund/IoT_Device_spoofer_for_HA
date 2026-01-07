@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import Head from "./Sections/Head";
-import { getDevices, deleteDevice, Device } from "./api";
+import { getDevices, deleteDevice, updateDevice, Device, Entity } from "./api";
 
 function App() {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -29,10 +29,24 @@ function App() {
   const handleDeleteDevice = async (id: string) => {
     try {
       await deleteDevice(id);
-      setDevices(devices.filter((d) => d.id !== id));
+      setDevices((prev) => prev.filter((d) => d.id !== id));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete device");
       console.error("Error deleting device:", err);
+    }
+  };
+
+  const handleUpdateEntities = async (id: string, entities: Entity[]) => {
+    try {
+      const updated = await updateDevice(id, { entities });
+      setDevices((prev) =>
+        prev.map((d) =>
+          d.id === id ? { ...d, entities: updated.entities } : d
+        )
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update device");
+      console.error("Error updating device:", err);
     }
   };
 
@@ -49,6 +63,7 @@ function App() {
           <Head
             devices={devices}
             onDeleteDevice={handleDeleteDevice}
+            onUpdateEntities={handleUpdateEntities}
             onRefresh={handleRefresh}
           />
         )}
