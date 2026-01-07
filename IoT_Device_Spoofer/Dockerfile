@@ -14,6 +14,9 @@ RUN npm install && npm run build
 FROM node:20-alpine
 WORKDIR /app
 
+# Install bashio for Home Assistant addon support
+RUN apk add --no-cache bash jq curl
+
 # Copy backend dist
 COPY --from=backend /src/dist ./backend
 COPY --from=backend /src/package.json ./backend/package.json
@@ -22,9 +25,13 @@ COPY --from=backend /src/node_modules ./backend/node_modules
 # Copy frontend build
 COPY --from=frontend /src/dist ./frontend
 
+# Copy run script
+COPY run.sh /
+RUN chmod +x /run.sh
+
 # Create data directory and declare volume
 RUN mkdir -p /app/data
 VOLUME ["/app/data"]
 
 EXPOSE 8080
-CMD ["node", "backend/server.js"]
+CMD ["/run.sh"]

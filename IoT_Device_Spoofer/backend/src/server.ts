@@ -3,6 +3,12 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { deviceRouter } from './routes/devices.js'
 import { entityRouter } from './routes/entities.js'
+import {
+  initializeMqtt,
+  getMqttClient,
+  shutdownMqtt,
+} from './mqtt/mqttClient.js'
+import { getDevices } from './storage/deviceStore.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -22,4 +28,56 @@ app.get('*', (_, res) => {
   res.sendFile(path.join(__dirname, '../frontend', 'index.html'))
 })
 
-app.listen(8080, () => console.log('Backend running on port 8080'))
+// MQTT configuration from environment or defaults
+const mqttConfig = {
+  host: process.env.MQTT_HOST || 'localhost',
+  port: parseInt(process.env.MQTT_PORT || '1883', 10),
+  username: process.env.MQTT_USERNAME,
+  password: process.env.MQTT_PASSWORD,
+}
+
+// Initialize MQTT and publish discovery for existing devices
+async function startServer() {
+  try {
+    console.log('🚀 Starting IoT Device Spoofer...')
+
+    // Connect to MQTT broker
+    await initializeMqtt(mqttConfig)
+
+    // Publish discovery for all existing devices
+    const devices = getDevices()
+    const mqttClient = getMqttClient()
+
+    if (mqttClient && devices.length > 0) {
+      console.log(
+        `📡 Publishing discovery for ${devices.length} existing device(s)...`
+      )
+      for (const device of devices) {
+        await mqttClient.publishDiscovery(device)
+      }
+    }
+
+    // Start HTTP server
+    app.listen(8080, () => {
+      console.log('✓ Backend running on port 8080')
+    })
+  } catch (err) {
+    console.error('✗ Failed to start server:', err)
+    process.exit(1)
+  }
+}
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully...')
+  await shutdownMqtt()
+  process.exit(0)
+})
+
+process.on('SIGINT', async () => {
+  console.log('🛑 SIGINT received, shutting down gracefully...')
+  await shutdownMqtt()
+  process.exit(0)
+})
+
+startServer()

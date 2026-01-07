@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { randomUUID } from 'crypto'
 import { EntityDefinition } from '../entities/baseEntity.js'
+import { getMqttClient } from '../mqtt/mqttClient.js'
 
 const DATA_DIR = '/data'
 const FILE_PATH = path.join(DATA_DIR, 'devices.json')
@@ -64,6 +65,15 @@ export function addDevice(input: NewDeviceInput): DeviceDefinition {
 
   devices.push(device)
   saveDevices(devices)
+  
+  // Publish MQTT discovery
+  const mqttClient = getMqttClient()
+  if (mqttClient) {
+    mqttClient.publishDiscovery(device).catch((err) => {
+      console.error('Failed to publish MQTT discovery:', err)
+    })
+  }
+  
   return device
 }
 
@@ -77,14 +87,36 @@ export function updateDevice(
 
   const nextEntities = updated.entities
     ? updated.entities.map((e) => ({ ...e, id: e.id ?? randomUUID() }))
+  
+  // Re-publish MQTT discovery with updated info
+  const mqttClient = getMqttClient()
+  if (mqttClient) {
+    mqttClient.publishDiscovery(devices[index]).catch((err) => {
+      console.error('Failed to update MQTT discovery:', err)
+    })
+  }
+  
     : devices[index].entities
 
   devices[index] = {
     ...devices[index],
     // ignore manufacturer field updates; always keep default
-    name: updated.name ?? devices[index].name,
-    entities: nextEntities,
+    namedeviceToDelete = devices.find((d) => d.id === id)
+  const filtered = devices.filter((d) => d.id !== id)
+  const changed = filtered.length !== devices.length
+  
+  if (changed) {
+    saveDevices(filtered)
+    
+    // Remove MQTT discovery
+    const mqttClient = getMqttClient()
+    if (mqttClient && deviceToDelete) {
+      mqttClient.removeDiscovery(deviceToDelete).catch((err) => {
+        console.error('Failed to remove MQTT discovery:', err)
+      })
+    }
   }
+  
   saveDevices(devices)
   return devices[index]
 }
