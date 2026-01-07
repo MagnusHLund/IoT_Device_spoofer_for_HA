@@ -1,7 +1,8 @@
-name: Device Spoofer
-version: '0.1.21'
+name: IoT Device Spoofer
+description: Creates virtual IoT devices via MQTT for prototyping and testing
+version: '0.1.22'
 slug: iot_device_spoofer
-description: Simulates IoT devices via MQTT for Home Assistant
+url: https://github.com/MagnusHLund/IoT_Device_spoofer_for_HA
 
 arch:
   - aarch64
@@ -10,19 +11,20 @@ arch:
   - armv7
   - i386
 
-startup: services
+startup: application
 boot: auto
+init: true
 
 ingress: true
 ingress_port: 8080
 
-url: https://github.com/MagnusHLund/IoT_Device_spoofer_for_HA
-
-init: true
-
 panel_icon: mdi:chip
 panel_title: IoT Device Spoofer
 
+# Optional: only needed if you publish images to GHCR
+image: ghcr.io/{homeassistant_repo}/iot-device-spoofer-{arch}
+
+# Add-on configuration exposed to the user
 options:
   mqtt_host: core-mosquitto
   mqtt_port: 1883
