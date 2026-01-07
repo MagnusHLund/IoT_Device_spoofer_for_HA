@@ -1,5 +1,6 @@
 import express from 'express'
 import path from 'path'
+import fs from 'fs'
 import { fileURLToPath } from 'url'
 import { deviceRouter } from './routes/devices.js'
 import { entityRouter } from './routes/entities.js'
@@ -28,12 +29,36 @@ app.get('*', (_, res) => {
   res.sendFile(path.join(__dirname, '../frontend', 'index.html'))
 })
 
-// MQTT configuration from environment or defaults
+// Try to read Home Assistant add-on options from /data/options.json
+function readAddonOptions(): {
+  mqtt_host?: string
+  mqtt_port?: number
+  mqtt_username?: string
+  mqtt_password?: string
+} | null {
+  try {
+    const optionsPath = '/data/options.json'
+    if (fs.existsSync(optionsPath)) {
+      const raw = fs.readFileSync(optionsPath, 'utf-8')
+      return JSON.parse(raw)
+    }
+  } catch {
+    // ignore and fall back to env/defaults
+  }
+  return null
+}
+
+const addonOptions = readAddonOptions()
+
+// MQTT configuration from add-on options, environment, or defaults
 const mqttConfig = {
-  host: process.env.MQTT_HOST || 'localhost',
-  port: parseInt(process.env.MQTT_PORT || '1883', 10),
-  username: process.env.MQTT_USERNAME,
-  password: process.env.MQTT_PASSWORD,
+  host: process.env.MQTT_HOST || addonOptions?.mqtt_host || 'localhost',
+  port: parseInt(
+    process.env.MQTT_PORT || String(addonOptions?.mqtt_port ?? 1883),
+    10
+  ),
+  username: process.env.MQTT_USERNAME ?? addonOptions?.mqtt_username,
+  password: process.env.MQTT_PASSWORD ?? addonOptions?.mqtt_password,
 }
 
 // Initialize MQTT and publish discovery for existing devices
