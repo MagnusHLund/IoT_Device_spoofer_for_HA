@@ -22,5 +22,9 @@ COPY --from=backend /src/node_modules ./backend/node_modules
 # Copy frontend build
 COPY --from=frontend /src/dist ./frontend
 
+# Create data directory and declare volume
+RUN mkdir -p /app/data
+VOLUME ["/app/data"]
+
 EXPOSE 8080
 CMD ["node", "backend/server.js"]

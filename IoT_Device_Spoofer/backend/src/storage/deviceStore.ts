@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { EntityDefinition } from '../entities/baseEntity'
 
-const DATA_DIR = '/data'
+const DATA_DIR = '/app/data'
 const FILE_PATH = path.join(DATA_DIR, 'devices.json')
 
 export interface DeviceDefinition {
