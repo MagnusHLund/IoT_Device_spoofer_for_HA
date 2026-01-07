@@ -21,7 +21,7 @@ class MqttClient {
   connect(): Promise<void> {
     return new Promise((resolve, reject) => {
       const url = `mqtt://${this.config.host}:${this.config.port}`
-      
+
       this.client = mqtt.connect(url, {
         username: this.config.username,
         password: this.config.password,
@@ -61,7 +61,11 @@ class MqttClient {
     })
   }
 
-  private publish(topic: string, payload: string, retain = true): Promise<void> {
+  private publish(
+    topic: string,
+    payload: string,
+    retain = true
+  ): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.client?.connected) {
         reject(new Error('MQTT client not connected'))
@@ -106,8 +110,8 @@ class MqttClient {
     const discoveryPayload = {
       name: `${device.name} ${entity.id}`,
       unique_id: uniqueId,
-      state_topic: entity.state_topic || `iot_spoofer/${device.id}/${entity.id}/state`,
-      command_topic: entity.command_topic,
+      state_topic: `iot_spoofer/${device.id}/${entity.id}/state`,
+      command_topic: `iot_spoofer/${device.id}/${entity.id}/set`,
       device: {
         identifiers: [device.id],
         name: device.name,
@@ -124,7 +128,7 @@ class MqttClient {
 
     try {
       await this.publish(configTopic, JSON.stringify(discoveryPayload), true)
-      
+
       // Mark device as available
       await this.publish(
         `iot_spoofer/${device.id}/availability`,
@@ -151,11 +155,7 @@ class MqttClient {
     }
 
     // Mark device as unavailable
-    await this.publish(
-      `iot_spoofer/${device.id}/availability`,
-      'offline',
-      true
-    )
+    await this.publish(`iot_spoofer/${device.id}/availability`, 'offline', true)
   }
 
   private async removeEntityDiscovery(
