@@ -3,7 +3,7 @@ import path from 'path'
 import { randomUUID } from 'crypto'
 import { EntityDefinition } from '../entities/baseEntity'
 
-const DATA_DIR = '/app/data'
+const DATA_DIR = '/data'
 const FILE_PATH = path.join(DATA_DIR, 'devices.json')
 
 export interface DeviceDefinition {
@@ -56,7 +56,10 @@ export function addDevice(input: NewDeviceInput): DeviceDefinition {
     id: randomUUID(),
     name: input.name,
     manufacturer: input.manufacturer ?? 'IoT Device Spoofer',
-    entities: (input.entities ?? []).map((e) => ({ ...e, id: e.id ?? randomUUID() })),
+    entities: (input.entities ?? []).map((e) => ({
+      ...e,
+      id: e.id ?? randomUUID(),
+    })),
   }
 
   devices.push(device)
@@ -64,7 +67,10 @@ export function addDevice(input: NewDeviceInput): DeviceDefinition {
   return device
 }
 
-export function updateDevice(id: string, updated: DeviceUpdateInput): DeviceDefinition | null {
+export function updateDevice(
+  id: string,
+  updated: DeviceUpdateInput
+): DeviceDefinition | null {
   const devices = getDevices()
   const index = devices.findIndex((d) => d.id === id)
   if (index === -1) return null
