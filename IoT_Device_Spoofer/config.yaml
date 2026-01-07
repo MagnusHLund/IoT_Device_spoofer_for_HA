@@ -1,5 +1,5 @@
 name: Device Spoofer
-version: '0.1.20'
+version: '0.1.21'
 slug: iot_device_spoofer
 description: Simulates IoT devices via MQTT for Home Assistant
 
@@ -22,3 +22,15 @@ init: true
 
 panel_icon: mdi:chip
 panel_title: IoT Device Spoofer
+
+options:
+  mqtt_host: core-mosquitto
+  mqtt_port: 1883
+  mqtt_username: ''
+  mqtt_password: ''
+
+schema:
+  mqtt_host: str
+  mqtt_port: port
+  mqtt_username: str?
+  mqtt_password: password?
