@@ -65,7 +65,7 @@ export function addDevice(input: NewDeviceInput): DeviceDefinition {
 
   devices.push(device)
   saveDevices(devices)
-  
+
   // Publish MQTT discovery
   const mqttClient = getMqttClient()
   if (mqttClient) {
@@ -73,7 +73,7 @@ export function addDevice(input: NewDeviceInput): DeviceDefinition {
       console.error('Failed to publish MQTT discovery:', err)
     })
   }
-  
+
   return device
 }
 
@@ -87,7 +87,16 @@ export function updateDevice(
 
   const nextEntities = updated.entities
     ? updated.entities.map((e) => ({ ...e, id: e.id ?? randomUUID() }))
-  
+    : devices[index].entities
+
+  devices[index] = {
+    ...devices[index],
+    // ignore manufacturer field updates; always keep default
+    name: updated.name ?? devices[index].name,
+    entities: nextEntities,
+  }
+  saveDevices(devices)
+
   // Re-publish MQTT discovery with updated info
   const mqttClient = getMqttClient()
   if (mqttClient) {
@@ -95,19 +104,19 @@ export function updateDevice(
       console.error('Failed to update MQTT discovery:', err)
     })
   }
-  
-    : devices[index].entities
 
-  devices[index] = {
-    ...devices[index],
-    // ignore manufacturer field updates; always keep default
-    namedeviceToDelete = devices.find((d) => d.id === id)
+  return devices[index]
+}
+
+export function deleteDevice(id: string) {
+  const devices = getDevices()
+  const deviceToDelete = devices.find((d) => d.id === id)
   const filtered = devices.filter((d) => d.id !== id)
   const changed = filtered.length !== devices.length
-  
+
   if (changed) {
     saveDevices(filtered)
-    
+
     // Remove MQTT discovery
     const mqttClient = getMqttClient()
     if (mqttClient && deviceToDelete) {
@@ -116,15 +125,6 @@ export function updateDevice(
       })
     }
   }
-  
-  saveDevices(devices)
-  return devices[index]
-}
 
-export function deleteDevice(id: string) {
-  const devices = getDevices()
-  const filtered = devices.filter((d) => d.id !== id)
-  const changed = filtered.length !== devices.length
-  saveDevices(filtered)
   return changed
 }
