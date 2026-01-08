@@ -68,6 +68,17 @@ async function startServer() {
   // Try to connect to MQTT, but don't crash if unavailable; mqtt.js will reconnect
   try {
     await initializeMqtt(mqttConfig)
+
+    // Set a default command handler that just echoes state back
+    const mqttClient = getMqttClient()
+    if (mqttClient) {
+      mqttClient.setCommandHandler(async (deviceId, entityId, payload) => {
+        console.log(
+          `✓ Command received - Device: ${deviceId}, Entity: ${entityId}, State: ${payload}`
+        )
+        // Add custom logic here if needed (validation, logging, etc.)
+      })
+    }
   } catch (err) {
     console.error('✗ MQTT connection error:', (err as Error)?.message || err)
     console.error('↻ Will keep trying to reconnect in the background...')

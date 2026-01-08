@@ -49,7 +49,9 @@ class MqttClient {
       })
 
       this.client.on('message', (topic, message) => {
-        this.handleMessage(topic, message.toString())
+        this.handleMessage(topic, message.toString()).catch((err) => {
+          console.error(`Error handling message on ${topic}:`, err)
+        })
       })
 
       this.client.on('error', (err) => {
@@ -90,6 +92,8 @@ class MqttClient {
   }
 
   private async handleMessage(topic: string, payload: string): Promise<void> {
+    console.log(`📥 Received message on ${topic}: ${payload}`)
+
     // Parse topic: iot_spoofer/<device_id>/<entity_id>/set
     const parts = topic.split('/')
     if (
@@ -101,6 +105,10 @@ class MqttClient {
       const entityId = parts[2]
 
       try {
+        console.log(
+          `⚙️  Processing command for device ${deviceId}, entity ${entityId}`
+        )
+
         // Call the command handler if set
         if (this.commandHandler) {
           await this.commandHandler(deviceId, entityId, payload)
@@ -113,6 +121,8 @@ class MqttClient {
       } catch (err) {
         console.error(`Failed to handle command on ${topic}:`, err)
       }
+    } else {
+      console.log(`⚠️  Ignoring message on unknown topic: ${topic}`)
     }
   }
 
