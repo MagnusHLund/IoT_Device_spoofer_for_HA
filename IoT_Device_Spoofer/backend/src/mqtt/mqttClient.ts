@@ -1,5 +1,9 @@
 import mqtt from 'mqtt'
-import { DeviceDefinition } from '../storage/deviceStore.js'
+import {
+  DeviceDefinition,
+  getDevices,
+  updateDevice,
+} from '../storage/deviceStore.js'
 import { EntityDefinition } from '../entities/baseEntity.js'
 
 interface MqttConfig {
@@ -9,13 +13,22 @@ interface MqttConfig {
   password?: string
 }
 
+interface CommandHandler {
+  (deviceId: string, entityId: string, payload: string): Promise<void>
+}
+
 class MqttClient {
   private client: mqtt.MqttClient | null = null
   private config: MqttConfig
   private discoveryPrefix = 'homeassistant'
+  private commandHandler: CommandHandler | null = null
 
   constructor(config: MqttConfig) {
     this.config = config
+  }
+
+  setCommandHandler(handler: CommandHandler) {
+    this.commandHandler = handler
   }
 
   connect(): Promise<void> {
@@ -30,7 +43,13 @@ class MqttClient {
 
       this.client.on('connect', () => {
         console.log('✓ Connected to MQTT broker')
+        // Subscribe to command topics
+        this.subscribeToCommands()
         resolve()
+      })
+
+      this.client.on('message', (topic, message) => {
+        this.handleMessage(topic, message.toString())
       })
 
       this.client.on('error', (err) => {
@@ -46,6 +65,55 @@ class MqttClient {
         console.log('↻ Reconnecting to MQTT broker...')
       })
     })
+  }
+
+  private subscribeToCommands(): void {
+    if (!this.client?.connected) return
+
+    try {
+      const devices = getDevices()
+      for (const device of devices) {
+        for (const entity of device.entities) {
+          const commandTopic = `iot_spoofer/${device.id}/${entity.id}/set`
+          this.client.subscribe(commandTopic, (err) => {
+            if (err) {
+              console.error(`Failed to subscribe to ${commandTopic}:`, err)
+            } else {
+              console.log(`✓ Subscribed to command topic: ${commandTopic}`)
+            }
+          })
+        }
+      }
+    } catch (err) {
+      console.error('Failed to subscribe to command topics:', err)
+    }
+  }
+
+  private async handleMessage(topic: string, payload: string): Promise<void> {
+    // Parse topic: iot_spoofer/<device_id>/<entity_id>/set
+    const parts = topic.split('/')
+    if (
+      parts.length === 4 &&
+      parts[0] === 'iot_spoofer' &&
+      parts[3] === 'set'
+    ) {
+      const deviceId = parts[1]
+      const entityId = parts[2]
+
+      try {
+        // Call the command handler if set
+        if (this.commandHandler) {
+          await this.commandHandler(deviceId, entityId, payload)
+        }
+
+        // Publish the new state back
+        const stateTopic = `iot_spoofer/${deviceId}/${entityId}/state`
+        await this.publish(stateTopic, payload, true)
+        console.log(`📤 Published state to ${stateTopic}: ${payload}`)
+      } catch (err) {
+        console.error(`Failed to handle command on ${topic}:`, err)
+      }
+    }
   }
 
   disconnect(): Promise<void> {
@@ -187,6 +255,16 @@ class MqttClient {
     }
 
     return mapping[entityType] || 'sensor'
+  }
+
+  async publishState(
+    deviceId: string,
+    entityId: string,
+    state: string
+  ): Promise<void> {
+    const stateTopic = `iot_spoofer/${deviceId}/${entityId}/state`
+    await this.publish(stateTopic, state, true)
+    console.log(`📤 Published state to ${stateTopic}: ${state}`)
   }
 }
 
