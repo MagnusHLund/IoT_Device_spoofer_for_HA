@@ -108,7 +108,7 @@ class MqttClient {
     const configTopic = `${this.discoveryPrefix}/${component}/${objectId}/config`
 
     const discoveryPayload = {
-      name: `${device.name} ${entity.id}`,
+      name: `${entity.name}`,
       unique_id: uniqueId,
       state_topic: `iot_spoofer/${device.id}/${entity.id}/state`,
       command_topic: `iot_spoofer/${device.id}/${entity.id}/set`,

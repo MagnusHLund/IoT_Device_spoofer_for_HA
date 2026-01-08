@@ -1,6 +1,7 @@
 export interface EntityDefinition {
   id: string
   type: string
+  name: string
   state_topic: string
   command_topic?: string
 }
@@ -8,12 +9,14 @@ export interface EntityDefinition {
 export default abstract class BaseEntity {
   id: string
   type: string
+  name: string
   state_topic: string
   command_topic?: string
 
   constructor(def: EntityDefinition) {
     this.id = def.id
     this.type = def.type
+    this.name = def.name
     this.state_topic = def.state_topic
     this.command_topic = def.command_topic
   }
