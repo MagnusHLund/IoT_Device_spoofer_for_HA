@@ -21,9 +21,6 @@ ingress_port: 8080
 panel_icon: mdi:chip
 panel_title: IoT Device Spoofer
 
-# Optional: only needed if you publish images to GHCR
-image: ghcr.io/{homeassistant_repo}/iot-device-spoofer-{arch}
-
 # Add-on configuration exposed to the user
 options:
   mqtt_host: core-mosquitto
