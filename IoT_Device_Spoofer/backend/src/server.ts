@@ -63,33 +63,48 @@ const mqttConfig = {
 
 // Initialize MQTT and publish discovery for existing devices
 async function startServer() {
+  console.log('🚀 Starting IoT Device Spoofer...')
+
+  // Try to connect to MQTT, but don't crash if unavailable; mqtt.js will reconnect
   try {
-    console.log('🚀 Starting IoT Device Spoofer...')
-
-    // Connect to MQTT broker
     await initializeMqtt(mqttConfig)
+  } catch (err) {
+    console.error('✗ MQTT connection error:', (err as Error)?.message || err)
+    console.error('↻ Will keep trying to reconnect in the background...')
+  }
 
-    // Publish discovery for all existing devices
-    const devices = getDevices()
+  // Start HTTP server regardless of initial MQTT connectivity
+  app.listen(8080, () => {
+    console.log('✓ Backend running on port 8080')
+  })
+
+  // Attempt to publish discovery when MQTT becomes available
+  const devices = getDevices()
+  if (devices.length === 0) return
+
+  let published = false
+  const tryPublish = async () => {
+    if (published) return
     const mqttClient = getMqttClient()
-
-    if (mqttClient && devices.length > 0) {
+    if (!mqttClient) return
+    try {
       console.log(
-        `📡 Publishing discovery for ${devices.length} existing device(s)...`
+        `📡 Attempting discovery publish for ${devices.length} device(s)...`
       )
       for (const device of devices) {
         await mqttClient.publishDiscovery(device)
       }
+      console.log('✓ Discovery published')
+      published = true
+      clearInterval(timer)
+    } catch {
+      // Likely not connected yet; keep trying
     }
-
-    // Start HTTP server
-    app.listen(8080, () => {
-      console.log('✓ Backend running on port 8080')
-    })
-  } catch (err) {
-    console.error('✗ Failed to start server:', err)
-    process.exit(1)
   }
+
+  const timer = setInterval(tryPublish, 5000)
+  // Also try immediately once
+  void tryPublish()
 }
 
 // Graceful shutdown
