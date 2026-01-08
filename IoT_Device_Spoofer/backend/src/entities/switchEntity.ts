@@ -8,7 +8,8 @@ export class SwitchEntity extends BaseEntity {
   toJSON() {
     return {
       id: this.id,
-      type: 'switch',
+      type: this.type,
+      name: this.name,
       state_topic: this.state_topic,
       command_topic: this.command_topic,
     }

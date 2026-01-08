@@ -14,6 +14,7 @@ export class BinarySensorEntity extends BaseEntity {
     return {
       id: this.id,
       type: this.type,
+      name: this.name,
       state_topic: this.state_topic,
       unit: this.unit,
       device_class: this.device_class,

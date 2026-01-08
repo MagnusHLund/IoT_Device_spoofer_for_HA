@@ -20,7 +20,8 @@ export class NumberEntity extends BaseEntity {
   toJSON() {
     return {
       id: this.id,
-      type: 'number',
+      type: this.type,
+      name: this.name,
       state_topic: this.state_topic,
       command_topic: this.command_topic,
       min: this.min,
