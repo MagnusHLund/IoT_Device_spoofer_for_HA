@@ -145,10 +145,10 @@ class MqttClient {
       off: 'Off',
       '0': 'Off',
       false: 'Off',
-      lock: 'Lock',
-      locked: 'Lock',
-      unlock: 'Unlock',
-      unlocked: 'Unlock',
+      lock: 'locked',
+      locked: 'locked',
+      unlock: 'unlocked',
+      unlocked: 'unlocked',
     }
 
     return mapping[normalized] || payload
@@ -271,14 +271,16 @@ class MqttClient {
         break
 
       case 'lock':
-        // For locks, use lock/unlock payloads
-        payload.payload_lock = 'Lock'
-        payload.payload_unlock = 'Unlock'
+        // For locks, use standard HA values: locked/unlocked for state, LOCK/UNLOCK for commands
+        payload.payload_lock = 'LOCK'
+        payload.payload_unlock = 'UNLOCK'
+        payload.state_locked = 'locked'
+        payload.state_unlocked = 'unlocked'
         break
 
       case 'number':
         // For numbers, ensure numeric state values
-        payload.min = 0
+        payload.min = -100
         payload.max = 100
         break
 
