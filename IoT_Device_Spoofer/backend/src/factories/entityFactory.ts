@@ -1,4 +1,3 @@
-import { BinarySensorEntity } from '../entities/binarySensorEntity.js'
 import { LockEntity } from '../entities/lockEntity.js'
 import { LightEntity } from '../entities/lightEntity.js'
 import { NumberEntity } from '../entities/numberEntity.js'
@@ -6,8 +5,6 @@ import { SwitchEntity } from '../entities/switchEntity.js'
 import { EntityDefinition } from '../entities/baseEntity.js'
 
 const ENTITY_REGISTRY = {
-  binary_sensor: BinarySensorEntity,
-  sensor: LightEntity,
   lock: LockEntity,
   light: LightEntity,
   number: NumberEntity,

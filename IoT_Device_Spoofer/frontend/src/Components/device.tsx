@@ -35,10 +35,11 @@ const Device: React.FC<DeviceProps> = ({
   onUpdateEntities,
   onDelete,
 }) => {
+  const defaultType = (types: string[]) => types[0] ?? 'light'
   const [isExpanded, setIsExpanded] = useState(false)
   const [entities, setEntities] = useState<Entity[]>(initialEntities)
   const [newEntityName, setNewEntityName] = useState('')
-  const [newEntityType, setNewEntityType] = useState('sensor')
+  const [newEntityType, setNewEntityType] = useState(defaultType([]))
   const [newStateTopic, setNewStateTopic] = useState('')
   const [showEntityForm, setShowEntityForm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -63,6 +64,9 @@ const Device: React.FC<DeviceProps> = ({
     const fetchEntityTypes = async () => {
       const types = await getEntityTypes()
       setEntityTypes(types)
+      setNewEntityType((prev) =>
+        types.includes(prev) ? prev : defaultType(types)
+      )
     }
     fetchEntityTypes()
   }, [])
@@ -108,7 +112,7 @@ const Device: React.FC<DeviceProps> = ({
       const next = [...entities, entity]
       persistEntities(next)
       setNewEntityName('')
-      setNewEntityType('sensor')
+      setNewEntityType(defaultType(entityTypes))
       setNewStateTopic('')
       setShowEntityForm(false)
     }
@@ -561,7 +565,7 @@ const Device: React.FC<DeviceProps> = ({
                   onClick={() => {
                     setShowEntityForm(false)
                     setNewEntityName('')
-                    setNewEntityType('sensor')
+                    setNewEntityType(defaultType(entityTypes))
                     setNewStateTopic('')
                   }}
                   disabled={saving}

@@ -277,18 +277,9 @@ class MqttClient {
         payload.max = 100
         break
 
-      case 'binary_sensor':
-        // Binary sensors are read-only, remove command_topic
-        delete payload.command_topic
-        // Use consistent On/Off payloads
-        payload.payload_on = 'On'
-        payload.payload_off = 'Off'
-        break
-
-      case 'sensor':
       default:
-        // Sensors are typically read-only
-        delete payload.command_topic
+        // For any unsupported entity types, drop the command_topic
+        delete (payload as { command_topic?: string }).command_topic
         break
     }
 
@@ -329,17 +320,15 @@ class MqttClient {
   }
 
   private mapEntityTypeToComponent(entityType: string): string {
-    // Map entity types to Home Assistant components
+    // Map supported entity types to Home Assistant components
     const mapping: Record<string, string> = {
-      binary_sensor: 'binary_sensor',
-      sensor: 'sensor',
       light: 'light',
       switch: 'switch',
       lock: 'lock',
       number: 'number',
     }
 
-    return mapping[entityType] || 'sensor'
+    return mapping[entityType] || 'switch'
   }
 
   async publishState(
