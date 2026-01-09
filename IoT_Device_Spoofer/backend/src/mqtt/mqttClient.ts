@@ -115,15 +115,38 @@ class MqttClient {
         }
 
         // Publish the new state back
+        // Normalize payload for state topic based on entity type
+        const stateValue = this.normalizeStatePayload(payload)
         const stateTopic = `iot_spoofer/${deviceId}/${entityId}/state`
-        await this.publish(stateTopic, payload, true)
-        console.log(`📤 Published state to ${stateTopic}: ${payload}`)
+        await this.publish(stateTopic, stateValue, true)
+        console.log(`📤 Published state to ${stateTopic}: ${stateValue}`)
       } catch (err) {
         console.error(`Failed to handle command on ${topic}:`, err)
       }
     } else {
       console.log(`⚠️  Ignoring message on unknown topic: ${topic}`)
     }
+  }
+
+  private normalizeStatePayload(payload: string): string {
+    // Normalize common payload values
+    const normalized = payload.toLowerCase().trim()
+
+    // Map common variations to standard Home Assistant values
+    const mapping: Record<string, string> = {
+      on: 'On',
+      '1': 'On',
+      true: 'On',
+      off: 'Off',
+      '0': 'Off',
+      false: 'Off',
+      lock: 'Lock',
+      locked: 'Lock',
+      unlock: 'Unlock',
+      unlocked: 'Unlock',
+    }
+
+    return mapping[normalized] || payload
   }
 
   disconnect(): Promise<void> {
@@ -185,7 +208,7 @@ class MqttClient {
     // <discovery_prefix>/<component>/[<node_id>/]<object_id>/config
     const configTopic = `${this.discoveryPrefix}/${component}/${objectId}/config`
 
-    const discoveryPayload = {
+    const basePayload = {
       name: `${entity.name}`,
       unique_id: uniqueId,
       state_topic: `iot_spoofer/${device.id}/${entity.id}/state`,
@@ -204,6 +227,13 @@ class MqttClient {
       },
     }
 
+    // Add entity-type-specific configuration
+    const discoveryPayload = this.buildEntitySpecificPayload(
+      basePayload,
+      entity,
+      component
+    )
+
     try {
       await this.publish(configTopic, JSON.stringify(discoveryPayload), true)
 
@@ -218,6 +248,48 @@ class MqttClient {
     } catch (err) {
       console.error(`  ✗ Failed to publish entity ${entity.id}:`, err)
     }
+  }
+
+  private buildEntitySpecificPayload(
+    basePayload: Record<string, unknown>,
+    entity: EntityDefinition,
+    component: string
+  ): Record<string, unknown> {
+    const payload = { ...basePayload }
+
+    switch (component) {
+      case 'switch':
+      case 'light':
+        // For switches and lights, use payload_on/payload_off
+        payload.payload_on = 'On'
+        payload.payload_off = 'Off'
+        break
+
+      case 'lock':
+        // For locks, use lock/unlock payloads
+        payload.payload_lock = 'Lock'
+        payload.payload_unlock = 'Unlock'
+        break
+
+      case 'number':
+        // For numbers, ensure numeric state values
+        payload.min = 0
+        payload.max = 100
+        break
+
+      case 'binary_sensor':
+        // For binary sensors, use payload_on/payload_off
+        payload.payload_on = 'on'
+        payload.payload_off = 'off'
+        break
+
+      case 'sensor':
+      default:
+        // Sensors work with any string value
+        break
+    }
+
+    return payload
   }
 
   async removeDiscovery(device: DeviceDefinition): Promise<void> {
