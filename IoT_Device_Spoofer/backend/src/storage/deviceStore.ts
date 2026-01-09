@@ -72,6 +72,7 @@ export function addDevice(input: NewDeviceInput): DeviceDefinition {
     mqttClient.publishDiscovery(device).catch((err) => {
       console.error('Failed to publish MQTT discovery:', err)
     })
+    mqttClient.resubscribeToCommands?.()
   }
 
   return device
@@ -103,6 +104,7 @@ export function updateDevice(
     mqttClient.publishDiscovery(devices[index]).catch((err) => {
       console.error('Failed to update MQTT discovery:', err)
     })
+    mqttClient.resubscribeToCommands?.()
   }
 
   return devices[index]

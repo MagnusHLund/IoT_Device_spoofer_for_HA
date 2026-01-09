@@ -91,6 +91,11 @@ class MqttClient {
     }
   }
 
+  // Allow external callers to refresh command subscriptions when devices/entities change
+  resubscribeToCommands(): void {
+    this.subscribeToCommands()
+  }
+
   private async handleMessage(topic: string, payload: string): Promise<void> {
     console.log(`📥 Received message on ${topic}: ${payload}`)
 
