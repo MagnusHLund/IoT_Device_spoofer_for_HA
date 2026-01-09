@@ -278,14 +278,17 @@ class MqttClient {
         break
 
       case 'binary_sensor':
-        // For binary sensors, use payload_on/payload_off
-        payload.payload_on = 'on'
-        payload.payload_off = 'off'
+        // Binary sensors are read-only, remove command_topic
+        delete payload.command_topic
+        // Use consistent On/Off payloads
+        payload.payload_on = 'On'
+        payload.payload_off = 'Off'
         break
 
       case 'sensor':
       default:
-        // Sensors work with any string value
+        // Sensors are typically read-only
+        delete payload.command_topic
         break
     }
 
