@@ -13,10 +13,6 @@ interface Entity {
   name: string
   state_topic: string
   command_topic?: string
-  states?: {
-    available_states: string[]
-    default_state: string
-  }
 }
 
 interface DeviceProps {
@@ -45,15 +41,6 @@ const Device: React.FC<DeviceProps> = ({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [entityTypes, setEntityTypes] = useState<string[]>([])
-  const [expandedEntities, setExpandedEntities] = useState<
-    Record<string, boolean>
-  >({})
-  const [stateForms, setStateForms] = useState<
-    Record<string, { show: boolean; value: string }>
-  >({})
-  const [stateEdits, setStateEdits] = useState<
-    Record<string, { editing: boolean; value: string }>
-  >({})
 
   // Keep local entities in sync if parent updates them
   useEffect(() => {
@@ -123,149 +110,6 @@ const Device: React.FC<DeviceProps> = ({
     persistEntities(next)
   }
 
-  const toggleEntityExpand = (entityId: string) => {
-    setExpandedEntities((prev) => ({ ...prev, [entityId]: !prev[entityId] }))
-  }
-
-  const openStateForm = (entityId: string) => {
-    setStateForms((prev) => ({
-      ...prev,
-      [entityId]: { show: true, value: '' },
-    }))
-  }
-
-  const cancelStateForm = (entityId: string) => {
-    setStateForms((prev) => ({
-      ...prev,
-      [entityId]: { show: false, value: '' },
-    }))
-  }
-
-  const handleAddState = (entityId: string) => {
-    const form = stateForms[entityId] || { show: false, value: '' }
-    const value = form.value?.trim()
-    if (!value) return
-
-    const next = entities.map((e) => {
-      if (e.id !== entityId) return e
-      const currentStates = e.states || {
-        available_states: [],
-        default_state: '',
-      }
-      // Avoid duplicates
-      if (currentStates.available_states.includes(value)) return e
-
-      return {
-        ...e,
-        states: {
-          ...currentStates,
-          available_states: [...currentStates.available_states, value],
-        },
-      }
-    })
-    persistEntities(next)
-    cancelStateForm(entityId)
-  }
-
-  const handleRemoveState = (entityId: string, stateValue: string) => {
-    const next = entities.map((e) => {
-      if (e.id !== entityId) return e
-      const currentStates = e.states || {
-        available_states: [],
-        default_state: '',
-      }
-      const nextAvailable = currentStates.available_states.filter(
-        (s) => s !== stateValue
-      )
-      const nextDefault =
-        currentStates.default_state === stateValue
-          ? ''
-          : currentStates.default_state
-      return {
-        ...e,
-        states: {
-          available_states: nextAvailable,
-          default_state: nextDefault,
-        },
-      }
-    })
-    persistEntities(next)
-  }
-
-  const beginEditState = (entityId: string, oldValue: string) => {
-    setStateEdits((prev) => ({
-      ...prev,
-      [entityId]: { editing: true, value: oldValue },
-    }))
-  }
-
-  const cancelEditState = (entityId: string) => {
-    setStateEdits((prev) => {
-      const copy = { ...prev }
-      delete copy[entityId]
-      return copy
-    })
-  }
-
-  const saveEditState = (
-    entityId: string,
-    oldValue: string,
-    newValue: string
-  ) => {
-    const trimmed = newValue.trim()
-    if (!trimmed || trimmed === oldValue) {
-      cancelEditState(entityId)
-      return
-    }
-
-    const next = entities.map((e) => {
-      if (e.id !== entityId) return e
-      const currentStates = e.states || {
-        available_states: [],
-        default_state: '',
-      }
-      // Check if new value already exists
-      if (currentStates.available_states.includes(trimmed)) {
-        alert('This state already exists')
-        return e
-      }
-      const nextAvailable = currentStates.available_states.map((s) =>
-        s === oldValue ? trimmed : s
-      )
-      const nextDefault =
-        currentStates.default_state === oldValue
-          ? trimmed
-          : currentStates.default_state
-      return {
-        ...e,
-        states: {
-          available_states: nextAvailable,
-          default_state: nextDefault,
-        },
-      }
-    })
-    persistEntities(next)
-    cancelEditState(entityId)
-  }
-
-  const setDefaultState = (entityId: string, stateValue: string) => {
-    const next = entities.map((e) => {
-      if (e.id !== entityId) return e
-      const currentStates = e.states || {
-        available_states: [],
-        default_state: '',
-      }
-      return {
-        ...e,
-        states: {
-          ...currentStates,
-          default_state: stateValue,
-        },
-      }
-    })
-    persistEntities(next)
-  }
-
   return (
     <div
       className="device-card"
@@ -314,208 +158,32 @@ const Device: React.FC<DeviceProps> = ({
           {entities.length === 0 ? (
             <p className="empty-entities">No entities yet. Add one below.</p>
           ) : (
-            entities.map((entity) => {
-              const isEntityExpanded = !!expandedEntities[entity.id]
-              const form = stateForms[entity.id] || { show: false, value: '' }
-              const stateEdit = stateEdits[entity.id]
-              const availableStates = entity.states?.available_states || []
-              const defaultState = entity.states?.default_state || ''
-
-              return (
+            <div className="entity-list">
+              {entities.map((entity) => (
                 <div key={entity.id} className="entity-item">
-                  <div
-                    className="entity-row"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      toggleEntityExpand(entity.id)
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault()
-                        toggleEntityExpand(entity.id)
-                      }
-                    }}
-                    aria-expanded={isEntityExpanded}
-                  >
+                  <div className="entity-row">
                     <div className="entity-header">
-                      <span className="entity-toggle-icon">
-                        {isEntityExpanded ? (
-                          <ExpandMoreIcon />
-                        ) : (
-                          <ChevronRightIcon />
-                        )}
-                      </span>
                       <div className="entity-details">
                         <span className="entity-name">{entity.name}</span>
                         <span className="entity-type">{entity.type}</span>
+                        <span className="entity-topic">{entity.state_topic}</span>
                       </div>
                     </div>
-                    <div className="entity-actions">
-                      <span className="entity-value">{defaultState}</span>
-                      <button
-                        className="entity-remove-btn"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleRemoveEntity(entity.id)
-                        }}
-                        title="Remove entity"
-                        disabled={saving}
-                      >
-                        ✕
-                      </button>
-                    </div>
+                    <button
+                      className="entity-remove-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleRemoveEntity(entity.id)
+                      }}
+                      title="Remove entity"
+                      disabled={saving}
+                    >
+                      
+                    </button>
                   </div>
-
-                  {isEntityExpanded && (
-                    <div className="entity-states">
-                      {availableStates.length > 0 ? (
-                        <div className="state-list">
-                          {availableStates.map((state) => {
-                            const isEditing =
-                              stateEdit?.editing && stateEdit?.value === state
-                            const isDefault = defaultState === state
-                            return (
-                              <div key={state} className="state-item">
-                                {!isEditing ? (
-                                  <>
-                                    <span className="state-name">{state}</span>
-                                    {isDefault && (
-                                      <span className="state-badge active">
-                                        Default
-                                      </span>
-                                    )}
-                                    <div className="state-actions">
-                                      {!isDefault && (
-                                        <button
-                                          className="state-action-btn set"
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            setDefaultState(entity.id, state)
-                                          }}
-                                        >
-                                          Set Default
-                                        </button>
-                                      )}
-                                      <button
-                                        className="state-action-btn edit"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          beginEditState(entity.id, state)
-                                        }}
-                                      >
-                                        Edit
-                                      </button>
-                                      <button
-                                        className="state-action-btn delete"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          if (
-                                            window.confirm(
-                                              'Delete this state? This cannot be undone.'
-                                            )
-                                          ) {
-                                            handleRemoveState(entity.id, state)
-                                          }
-                                        }}
-                                      >
-                                        Delete
-                                      </button>
-                                    </div>
-                                  </>
-                                ) : (
-                                  <div className="state-edit-inline">
-                                    <input
-                                      type="text"
-                                      value={stateEdit.value}
-                                      onChange={(e) =>
-                                        setStateEdits((prev) => ({
-                                          ...prev,
-                                          [entity.id]: {
-                                            ...prev[entity.id],
-                                            value: e.target.value,
-                                          },
-                                        }))
-                                      }
-                                    />
-                                    <div className="state-actions">
-                                      <button
-                                        className="state-action-btn save"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          saveEditState(
-                                            entity.id,
-                                            state,
-                                            stateEdit.value
-                                          )
-                                        }}
-                                      >
-                                        Save
-                                      </button>
-                                      <button
-                                        className="state-action-btn cancel"
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          cancelEditState(entity.id)
-                                        }}
-                                      >
-                                        Cancel
-                                      </button>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      ) : (
-                        <p className="empty-states">
-                          No states yet. Add one below.
-                        </p>
-                      )}
-
-                      {!form.show ? (
-                        <div className="add-state-btn-wrapper">
-                          <Button
-                            name="Add State"
-                            onClick={() => openStateForm(entity.id)}
-                            icon={<AddCircleIcon />}
-                          />
-                        </div>
-                      ) : (
-                        <div className="state-form">
-                          <input
-                            type="text"
-                            placeholder="State Value (e.g., On, Off)"
-                            value={form.value}
-                            onChange={(e) =>
-                              setStateForms((prev) => ({
-                                ...prev,
-                                [entity.id]: { ...form, value: e.target.value },
-                              }))
-                            }
-                          />
-                          <div className="state-form-buttons">
-                            <Button
-                              name={saving ? 'Saving...' : 'Create'}
-                              onClick={() => handleAddState(entity.id)}
-                            />
-                            <button
-                              className="form-btn cancel"
-                              onClick={() => cancelStateForm(entity.id)}
-                              disabled={saving}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
-              )
-            })
+              ))}
+            </div>
           )}
 
           {!showEntityForm ? (
@@ -530,7 +198,7 @@ const Device: React.FC<DeviceProps> = ({
             <div className="entity-form">
               <input
                 type="text"
-                placeholder="Entity Name (e.g., Temperature Sensor)"
+                placeholder="Entity Name (e.g., Kitchen Light)"
                 value={newEntityName}
                 onChange={(e) => setNewEntityName(e.target.value)}
               />
@@ -551,7 +219,7 @@ const Device: React.FC<DeviceProps> = ({
               </select>
               <input
                 type="text"
-                placeholder="State Topic (e.g., home/kitchen/temp)"
+                placeholder="State Topic (e.g., home/kitchen/light)"
                 value={newStateTopic}
                 onChange={(e) => setNewStateTopic(e.target.value)}
               />
