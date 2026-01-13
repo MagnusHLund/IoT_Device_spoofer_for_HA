@@ -11,7 +11,7 @@ interface Entity {
   id: string
   type: string
   name: string
-  state_topic: string
+  state_topic?: string
   command_topic?: string
 }
 
@@ -36,7 +36,6 @@ const Device: React.FC<DeviceProps> = ({
   const [entities, setEntities] = useState<Entity[]>(initialEntities)
   const [newEntityName, setNewEntityName] = useState('')
   const [newEntityType, setNewEntityType] = useState(defaultType([]))
-  const [newStateTopic, setNewStateTopic] = useState('')
   const [showEntityForm, setShowEntityForm] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -89,18 +88,16 @@ const Device: React.FC<DeviceProps> = ({
   }
 
   const handleAddEntity = () => {
-    if (newEntityName.trim() && newEntityType.trim() && newStateTopic.trim()) {
+    if (newEntityName.trim() && newEntityType.trim()) {
       const entity: Entity = {
         id: Date.now().toString(),
         type: newEntityType,
         name: newEntityName,
-        state_topic: newStateTopic,
       }
       const next = [...entities, entity]
       persistEntities(next)
       setNewEntityName('')
       setNewEntityType(defaultType(entityTypes))
-      setNewStateTopic('')
       setShowEntityForm(false)
     }
   }
@@ -166,7 +163,11 @@ const Device: React.FC<DeviceProps> = ({
                       <div className="entity-details">
                         <span className="entity-name">{entity.name}</span>
                         <span className="entity-type">{entity.type}</span>
-                        <span className="entity-topic">{entity.state_topic}</span>
+                        {entity.state_topic && (
+                          <span className="entity-topic">
+                            {entity.state_topic}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <button
@@ -177,9 +178,7 @@ const Device: React.FC<DeviceProps> = ({
                       }}
                       title="Remove entity"
                       disabled={saving}
-                    >
-                      
-                    </button>
+                    ></button>
                   </div>
                 </div>
               ))}
@@ -217,12 +216,6 @@ const Device: React.FC<DeviceProps> = ({
                   )
                 })}
               </select>
-              <input
-                type="text"
-                placeholder="State Topic (e.g., home/kitchen/light)"
-                value={newStateTopic}
-                onChange={(e) => setNewStateTopic(e.target.value)}
-              />
               <div className="entity-form-buttons">
                 <Button
                   name={saving ? 'Saving...' : 'Create'}
@@ -234,7 +227,6 @@ const Device: React.FC<DeviceProps> = ({
                     setShowEntityForm(false)
                     setNewEntityName('')
                     setNewEntityType(defaultType(entityTypes))
-                    setNewStateTopic('')
                   }}
                   disabled={saving}
                 >
