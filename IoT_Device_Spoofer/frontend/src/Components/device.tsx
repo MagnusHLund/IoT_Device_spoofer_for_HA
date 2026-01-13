@@ -114,6 +114,13 @@ const Device: React.FC<DeviceProps> = ({
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
+        const target = e.target as HTMLElement
+        // Ignore keyboard events from interactive elements
+        if (
+          target.closest('button, input, select, textarea, a')
+        ) {
+          return
+        }
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           toggleExpand()
